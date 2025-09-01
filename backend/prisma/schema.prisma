@@ -1,0 +1,45 @@
+model User {
+    id  Int @id @default(autoincrement())
+    name String
+    email String @unique
+    password String
+    role String
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+}
+
+model Club {
+    id Int @id @default(autoincrement())
+    name String
+    type String
+    faculty_coordinator User @relation(fields: [faculty_coordinator_id], references: [id])
+    president User @relation(fields: [president_id], references: [id])
+    vice_president User @relation(fields: [vice_president_id], references: [id])
+    budget Float
+    logo String
+    no_of_members Int
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    status String
+    faculty_coordinator_id Int
+    president_id Int
+    vice_president_id Int
+}
+
+model Event {
+    id Int @id @default(autoincrement())
+    name String
+    type String
+    owner_club Club @relation(fields: [owner_club_id], references: [id])
+    venue String
+    date DateTime
+    time String
+    requirements Json
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+    owner_club_id Int
+    status String
+    rejection_reason String
+    budget Float
+    revenue_generated Float
+}
