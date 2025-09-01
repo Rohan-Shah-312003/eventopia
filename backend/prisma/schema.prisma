@@ -43,3 +43,25 @@ model Event {
     budget Float
     revenue_generated Float
 }
+
+model EventRegistration {
+    id Int @id @default(autoincrement())
+    user User @relation(fields: [user_id], references: [id])
+    event Event @relation(fields: [event_id], references: [id])
+    role String
+    createdAt DateTime @default(now())
+    user_id Int
+    event_id Int
+}
+
+model AuditLog {
+    id Int @id @default(autoincrement())
+    action String
+    performed_by User @relation(fields: [performed_by_id], references: [id])
+    entity_type String
+    entity_id Int
+    old_data Json
+    new_data Json
+    createdAt DateTime @default(now())
+    performed_by_id Int
+}
