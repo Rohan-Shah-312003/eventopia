@@ -1,95 +1,85 @@
-datasource db {
-    provider = "postgresql"
-    url      = env("DATABASE_URL")
+generator client {
+  provider = "prisma-client-js"
 }
 
-generator client {
-    provider = "prisma-client-js"
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
 }
 
 model User {
-    id  Int @id @default(autoincrement())
-    name String
-    email String @unique
-    password String
-    role String
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    
-    // Relations with Club
-    facultyCoordinatedClubs Club[] @relation("FacultyCoordinator")
-    presidentOfClubs Club[] @relation("President")
-    vicePresidentOfClubs Club[] @relation("VicePresident")
+  id       String @id @default(cuid())
+  name     String
+  reg_no   String @unique
+  role     Role   @default(STUDENT)
+  password String
 
-    // Relations with EventRegistration
-    eventRegistrations EventRegistration[] @relation("EventRegistrations")
+  // Relations
+  events_created Event[] @relation("EventCreator")
+  clubs          Club[]
+  participations Event[] @relation("EventParticipants")
+  volunteer_events Event[] @relation("EventVolunteers")
 
-    // Relations with AuditLog
-    auditLogs AuditLog[] @relation("AuditLogs")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("users")
 }
 
 model Club {
-    id Int @id @default(autoincrement())
-    name String
-    type String
-    faculty_coordinator User @relation("FacultyCoordinator", fields: [faculty_coordinator_id], references: [id])
-    president User @relation("President", fields: [president_id], references: [id])
-    vice_president User @relation("VicePresident", fields: [vice_president_id], references: [id])
-    budget Float
-    logo String
-    no_of_members Int
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    status String
-    faculty_coordinator_id Int
-    president_id Int
-    vice_president_id Int
+  id          String @id @default(cuid())
+  name        String
+  type        String
+  description String?
+  president   User   @relation(fields: [president_id], references: [id])
+  president_id String
+  vice_president User? @relation("VicePresident", fields: [vice_president_id], references: [id])
+  vice_president_id String?
+  faculty_coordinator User? @relation("FacultyCoordinator", fields: [faculty_coordinator_id], references: [id])
+  faculty_coordinator_id String?
+  budget      Float?
+  logo        String?
+  members     Int    @default(0)
 
-    // Relations with Event
-    events Event[] @relation("Events")
+  // Relations
+  events Event[]
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("clubs")
 }
 
 model Event {
-    id Int @id @default(autoincrement())
-    name String
-    type String
-    owner_club Club @relation("Events",fields: [owner_club_id], references: [id])
-    venue String
-    date DateTime
-    time String
-    requirements Json
-    createdAt DateTime @default(now())
-    updatedAt DateTime @updatedAt
-    owner_club_id Int
-    status String
-    rejection_reason String
-    budget Float
-    revenue_generated Float
+  id            String   @id @default(cuid())
+  name          String
+  type          String
+  event_owner   Club     @relation(fields: [event_owner_id], references: [id])
+  event_owner_id String
+  venue         String
+  description   String?
+  date          DateTime
+  time          String
+  equipments    Json?
+  participants  Json?
+  volunteers    Json?
+  event_managers Json?
+  revenue_generated Float?
 
-    // Relation with EventRegistration
-    eventRegistrations EventRegistration[] @relation("Events")
+  // Relations
+  creator       User @relation("EventCreator", fields: [creator_id], references: [id])
+  creator_id    String
+  participants_list User[] @relation("EventParticipants")
+  volunteers_list   User[] @relation("EventVolunteers")
+
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  @@map("events")
 }
 
-model EventRegistration {
-    id Int @id @default(autoincrement())
-    user User @relation("EventRegistrations", fields: [user_id], references: [id])
-    event Event @relation("Events", fields: [event_id], references: [id])
-    role String
-    createdAt DateTime @default(now())
-    user_id Int
-    event_id Int
-
-    
-}
-
-model AuditLog {
-    id Int @id @default(autoincrement())
-    action String
-    performed_by User @relation("AuditLogs", fields: [performed_by_id], references: [id])
-    entity_type String
-    entity_id Int
-    old_data Json
-    new_data Json
-    createdAt DateTime @default(now())
-    performed_by_id Int
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
 }
