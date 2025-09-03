@@ -11,12 +11,18 @@ model User {
   id       String @id @default(cuid())
   name     String
   reg_no   String @unique
-  role     Role   @default(STUDENT)
+  role     Role   @default(VISITOR)
   password String
 
-  // Relations
+  // Relations as creator
   events_created Event[] @relation("EventCreator")
-  clubs          Club[]
+  
+  // Relations as club member
+  clubs_as_president Club[] @relation("President")
+  clubs_as_vice_president Club[] @relation("VicePresident") 
+  clubs_as_faculty_coordinator Club[] @relation("FacultyCoordinator")
+  
+  // Relations as participant/volunteer
   participations Event[] @relation("EventParticipants")
   volunteer_events Event[] @relation("EventVolunteers")
 
@@ -28,15 +34,22 @@ model User {
 
 model Club {
   id          String @id @default(cuid())
-  name        String
+  name        String @unique
   type        String
   description String?
-  president   User   @relation(fields: [president_id], references: [id])
-  president_id String
-  vice_president User? @relation("VicePresident", fields: [vice_president_id], references: [id])
-  vice_president_id String?
-  faculty_coordinator User? @relation("FacultyCoordinator", fields: [faculty_coordinator_id], references: [id])
-  faculty_coordinator_id String?
+  
+  // President relation
+  president User @relation("President", fields: [president_id], references: [id], onDelete: Restrict)
+  president_id String @unique
+  
+  // Vice President relation
+  vice_president User @relation("VicePresident", fields: [vice_president_id], references: [id], onDelete: Restrict)
+  vice_president_id String @unique
+  
+  // Faculty Coordinator relation
+  faculty_coordinator User @relation("FacultyCoordinator", fields: [faculty_coordinator_id], references: [id], onDelete: Restrict)
+  faculty_coordinator_id String @unique
+  
   budget      Float?
   logo        String?
   members     Int    @default(0)
@@ -54,8 +67,11 @@ model Event {
   id            String   @id @default(cuid())
   name          String
   type          String
-  event_owner   Club     @relation(fields: [event_owner_id], references: [id])
+  
+  // Club relation
+  event_owner Club @relation(fields: [event_owner_id], references: [id], onDelete: Cascade)
   event_owner_id String
+  
   venue         String
   description   String?
   date          DateTime
@@ -66,9 +82,11 @@ model Event {
   event_managers Json?
   revenue_generated Float?
 
-  // Relations
-  creator       User @relation("EventCreator", fields: [creator_id], references: [id])
-  creator_id    String
+  // Creator relation
+  creator User @relation("EventCreator", fields: [creator_id], references: [id], onDelete: Restrict)
+  creator_id String
+  
+  // Many-to-many relations
   participants_list User[] @relation("EventParticipants")
   volunteers_list   User[] @relation("EventVolunteers")
 
@@ -79,7 +97,7 @@ model Event {
 }
 
 enum Role {
-  STUDENT
+  VISITOR
   FACULTY
   ADMIN
 }
